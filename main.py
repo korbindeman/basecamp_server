@@ -1,3 +1,4 @@
+from typing import Union
 from fastapi import FastAPI, Query
 from pydantic import BaseModel
 from tinydb import TinyDB
@@ -18,9 +19,9 @@ app = FastAPI()
 
 @app.get("/sensors")
 async def sensors_get(
-    node: list[int] | None = Query(default=None),
-    start: int | None = None,
-    end: int | None = None,
+    node: Union[list[int], None] = Query(default=None),
+    start: Union[int, None] = None,
+    end: Union[int, None] = None,
 ):
     result = db.all()
 
