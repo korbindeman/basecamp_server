@@ -34,7 +34,7 @@ async def sensors_get(
     return result
 
 
-@app.post("/sensors")
+@app.post("/sensors", status_code=201)
 async def sensors_post(sensor_data: SensorData):
     db.insert(vars(sensor_data))
     return sensor_data
