@@ -18,17 +18,17 @@ app = FastAPI()
 
 @app.get("/sensors")
 async def sensors_get(
-    node: list[int] = Query(default=[]), start: int = 0, end: int = 0
+    node: list[int] | None = None, start: int | None = None, end: int | None = None
 ):
     result = db.all()
 
-    if node:
+    if node != None:
         result = [data for data in result if data["node"] in node]
 
-    if start:
+    if start != None:
         result = [data for data in result if data["timestamp"] >= start]
 
-    if end:
+    if end != None:
         result = [data for data in result if data["timestamp"] <= end]
 
     return result
