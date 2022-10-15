@@ -18,7 +18,9 @@ app = FastAPI()
 
 @app.get("/sensors")
 async def sensors_get(
-    node: list[int] | None = None, start: int | None = None, end: int | None = None
+    node: list[int] | None = Query(default=None),
+    start: int | None = None,
+    end: int | None = None,
 ):
     result = db.all()
 
