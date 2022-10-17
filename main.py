@@ -44,4 +44,4 @@ async def sensors_post(sensor_data: SensorData):
     return sensor_data
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", reload=False)
+    uvicorn.run("main:app", host="20.79.107.0", reload=False)
