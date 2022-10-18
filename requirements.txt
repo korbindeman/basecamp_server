@@ -2,5 +2,5 @@ fastapi[all]
 tinydb
 fastapi-sqlalchemy
 alembic
-psycopg2-bin
+psycopg2-binary
 python-dotenv
