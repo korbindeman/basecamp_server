@@ -1,4 +1,3 @@
-import uvicorn
 from typing import Union
 from fastapi import FastAPI, Query
 from pydantic import BaseModel
@@ -42,6 +41,3 @@ async def sensors_get(
 async def sensors_post(sensor_data: SensorData):
     db.insert(vars(sensor_data))
     return sensor_data
-
-# if __name__ == "__main__":
-#     uvicorn.run("main:app", host="20.79.107.0", port=8000, reload=False)
