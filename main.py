@@ -16,7 +16,7 @@ app = FastAPI()
 app.add_middleware(DBSessionMiddleware, db_url=os.environ["DATABASE_URI"])
 
 
-@app.get("/v1/sensors")
+@app.get("/sensors")
 async def sensors_get(
     node: list[int] | None = Query(default=None),
     start: int | None = None,
@@ -36,7 +36,7 @@ async def sensors_get(
     return result
 
 
-@app.post("/v1/sensors", status_code=201, response_model=SchemaSensorData)
+@app.post("/sensors", status_code=201, response_model=SchemaSensorData)
 async def sensors_post(sensor_data: SchemaSensorData):
     db_sensordata = ModelSensorData(
         node=sensor_data.node,
