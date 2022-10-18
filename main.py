@@ -17,7 +17,7 @@ db = TinyDB("db.json")
 app = FastAPI()
 
 
-@app.get("/sensors")
+@app.get("/v1/sensors")
 async def sensors_get(
     node: Union[list[int], None] = Query(default=None),
     start: Union[int, None] = None,
@@ -37,7 +37,7 @@ async def sensors_get(
     return result
 
 
-@app.post("/sensors", status_code=201)
+@app.post("/v1/sensors", status_code=201)
 async def sensors_post(sensor_data: SensorData):
     db.insert(vars(sensor_data))
     return sensor_data
