@@ -1,14 +1,10 @@
-from sqlalchemy import Column, Integer, Float
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from sqlmodel import Field, SQLModel
 
 
-class SensorData(Base):
-    __tablename__ = "sensordata"
-    id = Column(Integer, primary_key=True, index=True)
-    node = Column(Integer)
-    timestamp = Column(Integer)
-    temperature = Column(Float)
-    humidity = Column(Float)
-    pressure = Column(Float)
+class SensorData(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    node: int
+    timestamp: int
+    temperature: float
+    humidity: float
+    pressure: float

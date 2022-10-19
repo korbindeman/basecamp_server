@@ -1,19 +1,25 @@
 from fastapi import FastAPI, Query
-from fastapi_sqlalchemy import DBSessionMiddleware, db
-
-from schema import SensorData as SchemaSensorData
-
-from models import SensorData as ModelSensorData
-
+from sqlmodel import Session, SQLModel, create_engine, select
 import os
 from dotenv import load_dotenv
 
+
+from models import SensorData
+
 load_dotenv(".env")
+engine = create_engine(os.environ["DATABASE_URL"], echo=True)
+
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+
 
 app = FastAPI()
 
-# to avoid csrftokenError
-app.add_middleware(DBSessionMiddleware, db_url=os.environ["DATABASE_URI"])
+
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
 
 
 @app.get("/sensors")
@@ -22,29 +28,25 @@ async def sensors_get(
     start: int | None = None,
     end: int | None = None,
 ):
-    result = db.session.query(ModelSensorData).all()
+    with Session(engine) as session:
+        result = session.exec(select(SensorData)).all()
 
-    if node != None:
-        result = [data for data in result if data.node in node]
+        if node != None:
+            result = [data for data in result if data.node in node]
 
-    if start != None:
-        result = [data for data in result if data.timestamp >= start]
+        if start != None:
+            result = [data for data in result if data.timestamp >= start]
 
-    if end != None:
-        result = [data for data in result if data.timestamp <= end]
+        if end != None:
+            result = [data for data in result if data.timestamp <= end]
 
-    return result
+        return result
 
 
-@app.post("/sensors", status_code=201, response_model=SchemaSensorData)
-async def sensors_post(sensor_data: SchemaSensorData):
-    db_sensordata = ModelSensorData(
-        node=sensor_data.node,
-        timestamp=sensor_data.timestamp,
-        temperature=sensor_data.temperature,
-        humidity=sensor_data.humidity,
-        pressure=sensor_data.pressure,
-    )
-    db.session.add(db_sensordata)
-    db.session.commit()
-    return db_sensordata
+@app.post("/sensors", status_code=201, response_model=SensorData)
+async def sensors_post(sensor_data: SensorData):
+    with Session(engine) as session:
+        session.add(sensor_data)
+        session.commit()
+        session.refresh(sensor_data)
+        return sensor_data
