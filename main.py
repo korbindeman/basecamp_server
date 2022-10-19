@@ -3,7 +3,6 @@ from sqlmodel import Session, SQLModel, create_engine, select
 import os
 from dotenv import load_dotenv
 
-
 from models import SensorData
 
 load_dotenv(".env")
