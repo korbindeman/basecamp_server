@@ -1,17 +1,26 @@
-from typing import Dict
 from fastapi import Depends, FastAPI, Query
+from fastapi.responses import HTMLResponse
+
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+import codecs
 
 from app.db import get_session, init_db
 from app.models import NodeData, SensorData
 
-app = FastAPI()
+app = FastAPI(redoc_url=None)
 
 
 @app.on_event("startup")
 async def on_startup():
     await init_db()
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def index():
+    html = codecs.open("app/html/index.html", "r")
+    return html.read()
 
 
 @app.get("/sensors", response_model=list[SensorData])
