@@ -1,10 +1,10 @@
+import codecs
+
 from fastapi import Depends, FastAPI, Query
 from fastapi.responses import HTMLResponse
 
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-import codecs
 
 from app.db import get_session, init_db
 from app.models import NodeData, SensorData
