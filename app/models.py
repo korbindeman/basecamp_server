@@ -1,23 +1,47 @@
-import random
-import string
-from sqlmodel import Field, SQLModel
+from typing import List
+from sqlmodel import Field, SQLModel, Relationship
 
 
-class SensorData(SQLModel, table=True):
+class NodeDataBase(SQLModel):
+    name: str
+    description: str | None
+
+
+class NodeData(NodeDataBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    node: int
+    key: str | None = Field(default=None, unique=True)
+
+    sensordata: List["SensorData"] = Relationship(back_populates="node")
+
+
+class NodeDataRead(NodeDataBase):
+    id: int
+
+
+class NodeDataReadAfterCreate(NodeDataRead):
+    key: str
+
+
+class NodeDataCreate(NodeDataBase):
+    pass
+
+
+class SensorDataBase(SQLModel):
     timestamp: int
     temperature: float
     humidity: float
     pressure: float
 
 
-class NodeData(SQLModel, table=True):
-    def generateKey():
-        return "".join(random.choices(string.ascii_letters + string.digits, k=15))
-
+class SensorData(SensorDataBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    name: str
-    description: str | None
-    slug: str | None = Field(unique=True)
-    # key: str | None = Field(default=generateKey, unique=True)
+    node_id: int | None = Field(default=None, foreign_key="nodedata.id")
+    node: NodeData = Relationship(back_populates="sensordata")
+
+
+class SensorDataCreate(SensorDataBase):
+    key: str
+
+
+class SensorDataRead(SensorDataBase):
+    id: int

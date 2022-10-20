@@ -1,10 +1,19 @@
-from typing import Dict
+from random import choices
+import string
 from fastapi import Depends, FastAPI, Query
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db import get_session, init_db
-from app.models import NodeData, SensorData
+from app.models import (
+    NodeData,
+    NodeDataCreate,
+    NodeDataRead,
+    NodeDataReadAfterCreate,
+    SensorData,
+    SensorDataCreate,
+    SensorDataRead,
+)
+from sqlalchemy import event
 
 app = FastAPI()
 
@@ -14,7 +23,7 @@ async def on_startup():
     await init_db()
 
 
-@app.get("/sensors", response_model=list[SensorData])
+@app.get("/sensors", response_model=list[SensorDataRead])
 async def sensors_get(
     node: list[int] | None = Query(default=None),
     start: int | None = None,
@@ -38,34 +47,36 @@ async def sensors_get(
 
 @app.post("/sensors", status_code=201, response_model=SensorData)
 async def sensors_post(
-    sensor_data: SensorData,
+    sensor_data: SensorDataCreate,
     session: AsyncSession = Depends(get_session),
 ):
-    session.add(sensor_data)
+    db_sensor_data = SensorData.from_orm(sensor_data)
+    session.add(db_sensor_data)
     await session.commit()
-    await session.refresh(sensor_data)
-    return sensor_data
+    await session.refresh(db_sensor_data)
+    return db_sensor_data
 
 
-@app.get("/node", response_model=NodeData | list[NodeData] | None)
+@app.get("/nodes", response_model=NodeData | list[NodeData] | None)
 async def node_get(
-    node: int | None = Query(default=None),
     session: AsyncSession = Depends(get_session),
 ):
-    if not node:
-        result = await session.execute(select(NodeData))
-        return result.scalars().all()
-
-    result = await session.get(NodeData, node)
-    return result
+    result = await session.execute(select(NodeData))
+    return result.scalars().all()
 
 
-@app.post("/node", status_code=201, response_model=NodeData)
+@app.post("/nodes", status_code=201, response_model=NodeDataReadAfterCreate)
 async def node_post(
-    node_data: NodeData,
+    node_data: NodeDataCreate,
     session: AsyncSession = Depends(get_session),
 ):
-    session.add(node_data)
+    db_node_data = NodeData.from_orm(node_data)
+    session.add(db_node_data)
     await session.commit()
-    await session.refresh(node_data)
-    return node_data
+    await session.refresh(db_node_data)
+    return db_node_data
+
+
+@event.listens_for(NodeData, "before_insert")
+def before_insert_node(mapper, connection, target):
+    target.key = "".join(choices(string.ascii_letters + string.digits, k=15))
