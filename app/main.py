@@ -47,11 +47,15 @@ async def sensors_post(
     return sensor_data
 
 
-@app.get("/node", response_model=NodeData | None)
+@app.get("/node", response_model=NodeData | list[NodeData] | None)
 async def node_get(
     node: int | None = Query(default=None),
     session: AsyncSession = Depends(get_session),
 ):
+    if not node:
+        result = await session.execute(select(NodeData))
+        return result.scalars().all()
+
     result = await session.get(NodeData, node)
     return result
 
