@@ -1,9 +1,10 @@
+from typing import Dict
 from fastapi import Depends, FastAPI, Query
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session, init_db
-from app.models import SensorData
+from app.models import NodeData, SensorData
 
 app = FastAPI()
 
@@ -44,3 +45,23 @@ async def sensors_post(
     await session.commit()
     await session.refresh(sensor_data)
     return sensor_data
+
+
+@app.get("/node", response_model=NodeData | None)
+async def node_get(
+    node: int | None = Query(default=None),
+    session: AsyncSession = Depends(get_session),
+):
+    result = await session.get(NodeData, node)
+    return result
+
+
+@app.post("/node", status_code=201, response_model=NodeData)
+async def node_post(
+    node_data: NodeData,
+    session: AsyncSession = Depends(get_session),
+):
+    session.add(node_data)
+    await session.commit()
+    await session.refresh(node_data)
+    return node_data
