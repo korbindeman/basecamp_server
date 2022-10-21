@@ -38,7 +38,7 @@ class SensorData(SensorDataBase, table=True):
 
 
 class SensorDataCreate(SensorDataBase):
-    key: str
+    pass
 
 
 class SensorDataRead(SensorDataBase):

@@ -48,13 +48,14 @@ async def sensors_get(
 
 @app.post("/sensors", status_code=201, response_model=SensorData)
 async def sensors_post(
+    key: str,
     sensor_data: SensorDataCreate,
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Nodes))
     nodes = result.scalars().all()
     for node in nodes:
-        if sensor_data.key != node.key:
+        if key != node.key:
             continue
         db_sensor_data = SensorData.from_orm(sensor_data, {"node_id": node.id})
         session.add(db_sensor_data)
