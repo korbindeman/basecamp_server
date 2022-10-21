@@ -1,29 +1,25 @@
-from typing import List
-from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import UniqueConstraint, PrimaryKeyConstraint
+
+from sqlmodel import Field, SQLModel
 
 
-class NodeDataBase(SQLModel):
-    name: str
-    description: str | None
+class NodesBase(SQLModel):
+    name: str = Field(unique=True)
+    description: str
 
 
-class NodeData(NodeDataBase, table=True):
+class Nodes(NodesBase, table=True):
+    __table_args__ = (UniqueConstraint("name", "key"),)
     id: int | None = Field(default=None, primary_key=True)
-    key: str | None = Field(default=None, unique=True)
-
-    sensordata: List["SensorData"] = Relationship(back_populates="node")
-
-
-class NodeDataRead(NodeDataBase):
-    id: int
-
-
-class NodeDataReadAfterCreate(NodeDataRead):
     key: str
 
 
-class NodeDataCreate(NodeDataBase):
+class NodesCreate(NodesBase):
     pass
+
+
+class NodesRead(NodesBase):
+    id: int
 
 
 class SensorDataBase(SQLModel):
@@ -34,9 +30,11 @@ class SensorDataBase(SQLModel):
 
 
 class SensorData(SensorDataBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    node_id: int | None = Field(default=None, foreign_key="nodedata.id")
-    node: NodeData = Relationship(back_populates="sensordata")
+    __table_args__ = (
+        PrimaryKeyConstraint("node_id", "timestamp", name="sensordata_pk"),
+    )
+
+    node_id: int
 
 
 class SensorDataCreate(SensorDataBase):
@@ -44,4 +42,4 @@ class SensorDataCreate(SensorDataBase):
 
 
 class SensorDataRead(SensorDataBase):
-    id: int
+    node_id: int
