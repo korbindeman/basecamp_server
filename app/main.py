@@ -1,19 +1,20 @@
-from random import choices
-import string
+import secrets
+
 from fastapi import Depends, FastAPI, Query
+
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db import get_session, init_db
+
 from app.models import (
-    NodeData,
-    NodeDataCreate,
-    NodeDataRead,
-    NodeDataReadAfterCreate,
+    Nodes,
+    NodesCreate,
+    NodesRead,
     SensorData,
     SensorDataCreate,
     SensorDataRead,
 )
-from sqlalchemy import event
 
 app = FastAPI()
 
@@ -50,33 +51,37 @@ async def sensors_post(
     sensor_data: SensorDataCreate,
     session: AsyncSession = Depends(get_session),
 ):
-    db_sensor_data = SensorData.from_orm(sensor_data)
-    session.add(db_sensor_data)
-    await session.commit()
-    await session.refresh(db_sensor_data)
-    return db_sensor_data
+    result = await session.execute(select(Nodes))
+    nodes = result.scalars().all()
+    for node in nodes:
+        if sensor_data.key != node.key:
+            continue
+        db_sensor_data = SensorData.from_orm(sensor_data, {"node_id": node.id})
+        session.add(db_sensor_data)
+        await session.commit()
+        await session.refresh(db_sensor_data)
+        return db_sensor_data
 
 
-@app.get("/nodes", response_model=NodeData | list[NodeData] | None)
+@app.get("/nodes", response_model=list[NodesRead])
 async def node_get(
     session: AsyncSession = Depends(get_session),
 ):
-    result = await session.execute(select(NodeData))
-    return result.scalars().all()
+    result = await session.execute(select(Nodes))
+    data = result.scalars().all()
+
+    return data
 
 
-@app.post("/nodes", status_code=201, response_model=NodeDataReadAfterCreate)
+@app.post("/nodes", status_code=201, response_model=Nodes)
 async def node_post(
-    node_data: NodeDataCreate,
+    node_data: NodesCreate,
     session: AsyncSession = Depends(get_session),
 ):
-    db_node_data = NodeData.from_orm(node_data)
+    key = secrets.token_urlsafe(16)
+    db_node_data = Nodes.from_orm(node_data, {"key": key})
+
     session.add(db_node_data)
     await session.commit()
     await session.refresh(db_node_data)
     return db_node_data
-
-
-@event.listens_for(NodeData, "before_insert")
-def before_insert_node(mapper, connection, target):
-    target.key = "".join(choices(string.ascii_letters + string.digits, k=15))
