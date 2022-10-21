@@ -9,7 +9,7 @@ pip install -r requirements.txt
 
 Run development server:
 ```
-uvicorn main:app
+uvicorn app.main:app --reload
 ```
 
 To see API documentation:  

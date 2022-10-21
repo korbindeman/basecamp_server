@@ -1,4 +1,5 @@
 import codecs
+import secrets
 
 from fastapi import Depends, FastAPI, Query
 from fastapi.responses import HTMLResponse
@@ -7,7 +8,15 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session, init_db
-from app.models import NodeData, SensorData
+
+from app.models import (
+    Nodes,
+    NodesCreate,
+    NodesRead,
+    SensorData,
+    SensorDataCreate,
+    SensorDataRead,
+)
 
 app = FastAPI(redoc_url=None)
 
@@ -23,7 +32,7 @@ async def index():
     return html.read()
 
 
-@app.get("/sensors", response_model=list[SensorData])
+@app.get("/sensors", response_model=list[SensorDataRead])
 async def sensors_get(
     node: list[int] | None = Query(default=None),
     start: int | None = None,
@@ -47,34 +56,41 @@ async def sensors_get(
 
 @app.post("/sensors", status_code=201, response_model=SensorData)
 async def sensors_post(
-    sensor_data: SensorData,
+    key: str,
+    sensor_data: SensorDataCreate,
     session: AsyncSession = Depends(get_session),
 ):
-    session.add(sensor_data)
-    await session.commit()
-    await session.refresh(sensor_data)
-    return sensor_data
+    result = await session.execute(select(Nodes))
+    nodes = result.scalars().all()
+    for node in nodes:
+        if key != node.key:
+            continue
+        db_sensor_data = SensorData.from_orm(sensor_data, {"node_id": node.id})
+        session.add(db_sensor_data)
+        await session.commit()
+        await session.refresh(db_sensor_data)
+        return db_sensor_data
 
 
-@app.get("/node", response_model=NodeData | list[NodeData] | None)
+@app.get("/nodes", response_model=list[NodesRead])
 async def node_get(
-    node: int | None = Query(default=None),
     session: AsyncSession = Depends(get_session),
 ):
-    if not node:
-        result = await session.execute(select(NodeData))
-        return result.scalars().all()
+    result = await session.execute(select(Nodes))
+    data = result.scalars().all()
 
-    result = await session.get(NodeData, node)
-    return result
+    return data
 
 
-@app.post("/node", status_code=201, response_model=NodeData)
+@app.post("/nodes", status_code=201, response_model=Nodes)
 async def node_post(
-    node_data: NodeData,
+    node_data: NodesCreate,
     session: AsyncSession = Depends(get_session),
 ):
-    session.add(node_data)
+    key = secrets.token_urlsafe(16)
+    db_node_data = Nodes.from_orm(node_data, {"key": key})
+
+    session.add(db_node_data)
     await session.commit()
-    await session.refresh(node_data)
-    return node_data
+    await session.refresh(db_node_data)
+    return db_node_data
