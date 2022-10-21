@@ -7,10 +7,12 @@ Install python dependencies:
 pip install -r requirements.txt
 ```
 
+Add database url to `.env` (example url):
+```
+DATABASE_URL = postgres+asyncpg://user:password@hostname:port/database-name
+```
+
 Run development server:
 ```
 uvicorn app.main:app --reload
 ```
-
-To see API documentation:  
-<http://127.0.0.1:8000/docs>
