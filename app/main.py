@@ -29,16 +29,16 @@ async def index():
 
 @app.get("/sensors", response_model=list[SensorDataRead])
 async def sensors_get(
-    node: list[int] | None = Query(default=None),
     start: int | None = None,
     end: int | None = None,
+    node_id: list[int] | None = Query(default=None),
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(SensorData))
     data = result.scalars().all()
 
-    if node != None:
-        data = [data for data in data if data.node in node]
+    if node_id != None:
+        data = [data for data in data if data.node_id in node_id]
 
     if start != None:
         data = [data for data in data if data.timestamp >= start]
