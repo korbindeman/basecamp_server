@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db import get_session, init_db
+from app.db import get_session
 
 from app.models import (
     Nodes,
@@ -19,11 +19,6 @@ from app.models import (
 )
 
 app = FastAPI(redoc_url=None)
-
-
-@app.on_event("startup")
-async def on_startup():
-    await init_db()
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
