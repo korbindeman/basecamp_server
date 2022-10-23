@@ -1,7 +1,7 @@
 import codecs
 import secrets
 
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, Query, HTTPException
 from fastapi.responses import HTMLResponse
 
 from sqlalchemy.future import select
@@ -61,9 +61,13 @@ async def sensors_post(
         if key != node.key:
             continue
         db_sensor_data = SensorData.from_orm(sensor_data, {"node_id": node.id})
-        session.add(db_sensor_data)
-        await session.commit()
-        await session.refresh(db_sensor_data)
+        try:
+            session.add(db_sensor_data)
+            await session.commit()
+            await session.refresh(db_sensor_data)
+        except:
+            raise HTTPException(status_code=403, detail="Sensor data already exists at that timestamp for this node")
+
         return db_sensor_data
 
 
@@ -85,7 +89,10 @@ async def node_post(
     key = secrets.token_urlsafe(16)
     db_node_data = Nodes.from_orm(node_data, {"key": key})
 
-    session.add(db_node_data)
-    await session.commit()
-    await session.refresh(db_node_data)
+    try:
+        session.add(db_node_data)
+        await session.commit()
+        await session.refresh(db_node_data)
+    except:
+        raise HTTPException(status_code=403, detail="Title is already in use.")
     return db_node_data
