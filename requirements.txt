@@ -1,6 +1,7 @@
-fastapi[all]
-tinydb
-fastapi-sqlalchemy
-alembic
-psycopg2-binary
-python-dotenv
+alembic==1.8.1
+asyncpg==0.26.0
+fastapi==0.85.1
+greenlet==1.1.3
+python-dotenv==0.21.0
+sqlmodel==0.0.8
+uvicorn==0.18.3
