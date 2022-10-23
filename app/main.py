@@ -18,7 +18,7 @@ from app.models import (
     SensorDataRead,
 )
 
-app = FastAPI(redoc_url=None)
+app = FastAPI(redoc_url=None, swagger_ui_parameters={"defaultModelsExpandDepth": -1})
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -66,7 +66,10 @@ async def sensors_post(
             await session.commit()
             await session.refresh(db_sensor_data)
         except:
-            raise HTTPException(status_code=403, detail="Sensor data already exists at that timestamp for this node")
+            raise HTTPException(
+                status_code=403,
+                detail="Sensor data already exists at that timestamp for this node",
+            )
 
         return db_sensor_data
 
