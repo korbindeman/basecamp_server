@@ -29,21 +29,21 @@ async def index():
 
 @app.get("/sensors", response_model=list[SensorDataRead])
 async def sensors_get(
-    node_id: list[int] | None = Query(default=None),
-    _from: int | None = Query(default=None, alias="from"),
-    to: int | None = None,
-    session: AsyncSession = Depends(get_session),
+        node_id: list[int] | None = Query(default=None),
+        _from: int | None = Query(default=None, alias="from"),
+        to: int | None = None,
+        session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(SensorData))
     data = result.scalars().all()
 
-    if node_id != None:
+    if node_id is not None:
         data = [data for data in data if data.node_id in node_id]
 
-    if _from != None:
+    if _from is not None:
         data = [data for data in data if data.timestamp >= _from]
 
-    if to != None:
+    if to is not None:
         data = [data for data in data if data.timestamp <= to]
 
     return data
@@ -51,9 +51,9 @@ async def sensors_get(
 
 @app.post("/sensors", status_code=201, response_model=SensorData)
 async def sensors_post(
-    key: str,
-    sensor_data: SensorDataCreate,
-    session: AsyncSession = Depends(get_session),
+        key: str,
+        sensor_data: SensorDataCreate,
+        session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Nodes))
     nodes = result.scalars().all()
@@ -76,7 +76,7 @@ async def sensors_post(
 
 @app.get("/nodes", response_model=list[NodesRead])
 async def node_get(
-    session: AsyncSession = Depends(get_session),
+        session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Nodes))
     data = result.scalars().all()
@@ -86,8 +86,8 @@ async def node_get(
 
 @app.post("/nodes", status_code=201, response_model=Nodes)
 async def node_post(
-    node_data: NodesCreate,
-    session: AsyncSession = Depends(get_session),
+        node_data: NodesCreate,
+        session: AsyncSession = Depends(get_session),
 ):
     key = secrets.token_urlsafe(16)
     db_node_data = Nodes.from_orm(node_data, {"key": key})
