@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+          "type": "command",
+          "name": "uvicorn",
+          "program": "./venv/bin/uvicorn",
+          "args": ["app.main:app", "--reload"]
+        },
+    ]
+}
