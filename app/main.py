@@ -65,7 +65,7 @@ async def sensors_post(
             session.add(db_sensor_data)
             await session.commit()
             await session.refresh(db_sensor_data)
-        except:
+        except Exception:
             raise HTTPException(
                 status_code=403,
                 detail="Sensor data already exists at that timestamp for this node",
@@ -96,6 +96,6 @@ async def node_post(
         session.add(db_node_data)
         await session.commit()
         await session.refresh(db_node_data)
-    except:
+    except Exception:
         raise HTTPException(status_code=403, detail="Title is already in use.")
     return db_node_data
