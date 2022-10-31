@@ -37,13 +37,13 @@ async def sensors_get(
     result = await session.execute(select(SensorData))
     data = result.scalars().all()
 
-    if node_id != None:
+    if node_id is not None:
         data = [data for data in data if data.node_id in node_id]
 
-    if _from != None:
+    if _from is not None:
         data = [data for data in data if data.timestamp >= _from]
 
-    if to != None:
+    if to is not None:
         data = [data for data in data if data.timestamp <= to]
 
     return data
@@ -65,7 +65,7 @@ async def sensors_post(
             session.add(db_sensor_data)
             await session.commit()
             await session.refresh(db_sensor_data)
-        except:
+        except Exception:
             raise HTTPException(
                 status_code=403,
                 detail="Sensor data already exists at that timestamp for this node",
@@ -96,6 +96,6 @@ async def node_post(
         session.add(db_node_data)
         await session.commit()
         await session.refresh(db_node_data)
-    except:
+    except Exception:
         raise HTTPException(status_code=403, detail="Title is already in use.")
     return db_node_data
