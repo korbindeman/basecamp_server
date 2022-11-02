@@ -92,6 +92,16 @@ async def node_post(
     key = secrets.token_urlsafe(16)
     db_node_data = Nodes.from_orm(node_data, {"key": key})
 
+    if len(db_node_data.name) >= 20:
+        raise HTTPException(
+            status_code=403, detail="Node name cannot be longer than 20 characters."
+        )
+
+    if len(db_node_data.description) >= 50:
+        raise HTTPException(
+            status_code=403, detail="Description cannot be longer than 50 characters."
+        )
+
     try:
         session.add(db_node_data)
         await session.commit()
