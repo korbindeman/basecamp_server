@@ -51,8 +51,8 @@ async def sensors_get(
 
 @app.post("/sensors", status_code=201, response_model=SensorData)
 async def sensors_post(
-    key: str,
     sensor_data: SensorDataCreate,
+    key: str = Query(max_length=50),
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Nodes))
