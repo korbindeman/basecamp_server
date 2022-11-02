@@ -4,7 +4,7 @@ from sqlmodel import Field, SQLModel
 
 
 class NodesBase(SQLModel):
-    name: str = Field(unique=True, max_length=20)
+    name: str = Field(unique=True, max_length=50)
     description: str = Field(max_length=100)
 
 
