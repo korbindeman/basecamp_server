@@ -78,7 +78,7 @@ async def sensors_post(
 @app.delete("/sensors")
 async def delete(
     key: str,
-    timestamp: int,
+    timestamp: list[int] = Query(),
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Nodes))
@@ -86,12 +86,12 @@ async def delete(
     for node in nodes:
         if key != node.key:
             continue
-        sensor_data = await session.get(SensorData, [node.id, timestamp])
-        if not sensor_data:
-            raise HTTPException(status_code=404, detail="Sensor data not found")
-        await session.delete(sensor_data)
-        await session.commit()
-        # await session.refresh(sensor_data)
+        for single_timestamp in timestamp:
+            sensor_data = await session.get(SensorData, [node.id, single_timestamp])
+            if not sensor_data:
+                raise HTTPException(status_code=404, detail="Sensor data not found")
+            await session.delete(sensor_data)
+            await session.commit()
         return {"ok": True}
     raise HTTPException(status_code=304, detail="Invalid key")
 
