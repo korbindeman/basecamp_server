@@ -75,6 +75,28 @@ async def sensors_post(
     raise HTTPException(status_code=304, detail="Invalid key")
 
 
+@app.delete("/sensors")
+async def delete(
+    key: str,
+    timestamp: int,
+    session: AsyncSession = Depends(get_session),
+):
+    result = await session.execute(select(Nodes))
+    nodes = result.scalars().all()
+    for node in nodes:
+        if key != node.key:
+            continue
+        sensor_data = await session.get(SensorData, [node.id, timestamp])
+        if not sensor_data:
+            raise HTTPException(status_code=404, detail="Sensor data not found")
+        await session.delete(sensor_data)
+        await session.commit()
+        # await session.refresh(sensor_data)
+        return {"ok": True}
+    raise HTTPException(status_code=304, detail="Invalid key")
+
+
+
 @app.get("/nodes", response_model=list[NodesRead])
 async def node_get(
     session: AsyncSession = Depends(get_session),
