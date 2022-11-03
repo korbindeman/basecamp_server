@@ -72,6 +72,7 @@ async def sensors_post(
             )
 
         return db_sensor_data
+    raise HTTPException(status_code=304, detail="Invalid key")
 
 
 @app.get("/nodes", response_model=list[NodesRead])
